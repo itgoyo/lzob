@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Streamer {
+  id            String         @id @default(cuid())
+  wechatId      String         @map("wechat_id") @db.VarChar(100)
+  wechatName    String         @map("wechat_name") @db.VarChar(100)
+  streamerName  String         @map("streamer_name") @db.VarChar(100)
+  liveUrl       String         @map("live_url") @db.VarChar(500)
+  platform      Platform
+  isCustom      Boolean        @default(false) @map("is_custom")
+  fee           Decimal        @db.Decimal(10, 2)
+  startDate     DateTime       @map("start_date") @db.Date
+  expireDate    DateTime       @map("expire_date") @db.Date
+  status        StreamerStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  
+  notifications Notification[]
+
+  @@map("streamers")
+  @@index([expireDate])
+  @@index([status])
+}
+
+model ServerChan {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(100)
+  sendKey   String   @map("send_key") @db.VarChar(200)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("server_chan_configs")
+}
+
+model EmailConfig {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(100)
+  email     String   @db.VarChar(200)
+  smtpHost  String   @map("smtp_host") @db.VarChar(200)
+  smtpPort  Int      @map("smtp_port")
+  smtpUser  String   @map("smtp_user") @db.VarChar(200)
+  smtpPass  String   @map("smtp_pass") @db.VarChar(200)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("email_configs")
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  streamerId String   @map("streamer_id")
+  sentAt     DateTime @default(now()) @map("sent_at")
+  content    String   @db.Text
+  
+  streamer   Streamer @relation(fields: [streamerId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([streamerId])
+  @@index([sentAt])
+}
+
+enum Platform {
+  DOUYIN
+  DOUYU
+  HUYA
+  BILIBILI
+  OTHER
+}
+
+enum StreamerStatus {
+  ACTIVE
+  EXPIRED
+}
+
