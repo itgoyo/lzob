@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateCredentials, setLoginStatus } from '@/lib/auth'
 
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
@@ -27,6 +38,10 @@ export async function POST(request: NextRequest) {
       success: true,
       message: '登录成功',
       username,
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
     })
   } catch (error) {
     console.error('登录失败:', error)
